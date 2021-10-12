@@ -356,10 +356,11 @@ function deploy-standalone {
   sudo openstack tripleo deploy --templates \
                                 --local-ip=${IP}/${NETMASK} \
                                 --control-virtual-ip ${VIP} \
-                                --standalone-role /usr/share/openstack-tripleo-heat-templates/roles/Standalone.yaml \
+                                -r /usr/share/openstack-tripleo-heat-templates/roles/Standalone.yaml \
                                 --environment-file /usr/share/openstack-tripleo-heat-templates/environments/standalone/standalone-tripleo.yaml \
                                 --environment-file ${HOME}/containers-prepare-parameters.yaml \
                                 --environment-file ${HOME}/standalone_parameters.yaml \
+                                --standalone-role Standalone \
                                 --output-dir ${HOME} \
                                 --stack ${STACK_NAME}
 }
