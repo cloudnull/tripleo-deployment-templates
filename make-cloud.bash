@@ -306,7 +306,20 @@ function apply-workarounds {
 }
 
 
+function make-swap {
+  if [[ ! -f /swapfile ]]; then
+    sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+    sudo swapon /swapfile
+    grep -q "/swapfile" /etc/fstab || echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab
+    sudo sysctl -w vm.swappiness=10 > /etc/sysctl.d/99-swap.conf
+  fi
+}
+
+
 function pre-build {
+  make-swap
   sudo hostnamectl set-hostname $(hostname -s).localdomain
   sudo hostnamectl set-hostname $(hostname -s).localdomain --transient
 
