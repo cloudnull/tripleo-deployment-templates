@@ -70,4 +70,5 @@ parameter_defaults:
   OvercloudControlFlavor: baremetal
   OvercloudSwiftStorageFlavor: baremetal
   SELinuxMode: permissive
+  SshFirewallAllowAll: true
   StandaloneNetworkConfigTemplate: /home/centos/dual-nic-multi-vlan.yaml.j2

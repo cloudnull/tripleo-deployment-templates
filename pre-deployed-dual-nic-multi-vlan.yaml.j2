@@ -1,0 +1,113 @@
+# This network template is useful for environments that leverage two network interfaces and VLANs.
+#
+# The first network device will have a simple setup giving operators access to the node.
+# * "nic1" is the control plane network.
+#
+# The second network device is used with OVS and has assosiated VLAN tagged interfaces for further
+# network isolation.
+# * "nic2" is the network responsible for all cloud operations.
+#
+---
+{#
+  Set the default public DNS. When the option `ctlplane_dns_nameservers` has no value, the network
+  template will use the public DNS constant. This is done to ensure that overcloud nodes have an
+  appropriate DNS entry for the environment.
+#}
+{% set public_dns = ["208.67.222.222", "8.8.8.8"] %}
+{#
+  Determine the value of the `ctlplane_dns_nameservers` and set the value if requied.
+#}
+{% if ctlplane_dns_nameservers is defined %}
+{%   if (ctlplane_dns_nameservers is not mapping) and (ctlplane_dns_nameservers is iterable) and (ctlplane_dns_nameservers is not string) %}
+{%     if (ctlplane_dns_nameservers | length | int) < 1 %}
+{%       set ctlplane_dns_nameservers = public_dns %}
+{%     endif %}
+{%   endif %}
+{% else %}
+{%   set ctlplane_dns_nameservers = public_dns %}
+{% endif %}
+{#
+  Loop through all networks set the minimum viable MTU and create nic2 vlan members.
+#}
+{% set mtu_list = [ctlplane_mtu] %}
+{% set nic2_members = [] %}
+{% for network in role_networks %}
+{%   set _ = mtu_list.append(
+       lookup('vars', networks_lower[network] ~ '_mtu')
+     )
+%}
+{%   set vlan_id = lookup('vars', networks_lower[network] ~ '_vlan_id') | int %}
+{%   if vlan_id != 1 %}
+{%     set _ = nic2_members.append(
+       {
+         "type": "vlan",
+         "mtu": lookup('vars', networks_lower[network] ~ '_mtu') | int,
+         "vlan_id": vlan_id | int,
+         "addresses": [
+           {
+             "ip_netmask": lookup('vars', networks_lower[network] ~ '_ip') ~ "/" ~ lookup('vars', networks_lower[network] ~ '_cidr')
+           }
+         ],
+         "routes": lookup('vars', networks_lower[network] ~ '_host_routes')
+       }
+     )
+%}
+{%   endif %}
+{% endfor %}
+{#
+  Sort the members by VLAN ID.
+#}
+{% set nic2_members = nic2_members | sort(attribute='vlan_id') | list %}
+{#
+  Note that the minimum MTU is selected because the bridge interface will inheret the lowest MTU of all member interfaces.
+#}
+{% set min_viable_mtu = mtu_list | min | int %}
+{#
+  Create the primary interface for use with members
+#}
+{% set _ = nic2_members.insert(
+      0,
+      {
+        "type": "interface",
+        "name": "nic3",
+        "mtu": min_viable_mtu | int,
+        "primary": true
+      }
+   )
+%}
+{#
+  Set the network configuration interfaces
+#}
+{% set network_config_interfaces = [
+    {
+      "type": "interface",
+      "name": "nic2",
+      "mtu": ctlplane_mtu,
+      "dns_servers": ctlplane_dns_nameservers,
+      "domain": dns_search_domains,
+      "routes": ctlplane_host_routes,
+      "use_dhcp": false,
+      "addresses": [
+        {
+          "ip_netmask": ctlplane_ip ~ "/" ~ ctlplane_subnet_cidr
+        }
+      ]
+    },
+    {
+      "type": "ovs_bridge",
+      "name": neutron_physical_bridge_name,
+      "mtu": min_viable_mtu,
+      "use_dhcp": false,
+      "domain": dns_search_domains,
+      "members": nic2_members
+    }
+  ]
+%}
+{#
+  Render the network configuration as nice YAML
+#}
+{% set network_config = {
+     "network_config": network_config_interfaces
+   }
+%}
+{{ network_config | to_nice_yaml }}
