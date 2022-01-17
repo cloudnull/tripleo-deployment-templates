@@ -9,7 +9,16 @@ export NFS_SERVER="${NFS_SERVER:-172.16.27.211}"
 export TENANT_VLAN="${TENANT_VLAN:-204}"
 
 
-function tmux_execute {
+function create-stack-user {
+  sudo useradd --comment "OpenStack user" --create-home --user-group --groups wheel stack
+  if [[ ! -d "/etc/sudoers.d/" ]]; then
+    mkdir -p /etc/sudoers.d
+  fi
+  echo '%wheel ALL=(ALL) NOPASSWD: ALL' | sudo tee -a /etc/sudoers.d/stack
+}
+
+
+function tmux-execute {
   tmux new-session -d -s deploy-tripleo -n deploy-tripleo || true
   tmux new-window -n deploy -t 0 || true
   tmux send-keys "${1}" C-m
@@ -204,7 +213,7 @@ function build-patched-packages {
           version: FETCH_HEAD
 EOF
     ansible-galaxy install cloudnull.ansible_tripleo_sdk --force
-    rm -fv /home/centos/tripleo-sdk/packages.created
+    rm -fv ${HOME}/tripleo-sdk/packages.created
     ansible-playbook -i localhost, playbook.yaml
 }
 
