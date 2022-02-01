@@ -82,14 +82,8 @@
   subnets:
     management_subnet:
       allocation_pools:
-      - end: 172.16.5.250
-        start: 172.16.5.4
-      gateway_ip: 172.16.5.1
-      gateway_ipv6: fd00:fd00:fd00:6000::1
-      ip_subnet: 172.16.5.0/24
-      ipv6_allocation_pools:
-      - end: fd00:fd00:fd00:6000:ffff:ffff:ffff:fffe
-        start: fd00:fd00:fd00:6000::10
-      ipv6_subnet: fd00:fd00:fd00:6000::/64
-      vlan: 205
+      - end: 172.16.25.10
+        start: 172.16.25.1
+      gateway_ip: 172.16.24.2
+      ip_subnet: 172.16.24.0/22
   vip: false

@@ -1,0 +1,9 @@
+- hosts: all
+  become: true
+  tasks:
+  - shell: >-
+      curl https://trunk.rdoproject.org/centos8/current/delorean.repo | tee /etc/yum.repos.d/delorean.repo
+  - shell: >-
+      dnf install -y 'python*tripleo-repos'
+  - shell: >-
+      tripleo-repos -b master current-tripleo

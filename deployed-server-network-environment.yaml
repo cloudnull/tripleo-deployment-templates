@@ -1,0 +1,99 @@
+---
+parameter_defaults:
+  HostnameMap:
+    overcloud-controller-0: overcloud-controller-0
+    overcloud-compute-0: overcloud-compute-0
+  NodePortMap:
+    overcloud-compute-0:
+      management:
+        ip_address: 172.16.27.74
+        ip_address_uri: 172.16.27.74
+        ip_subnet: 172.16.27.74/22
+      ctlplane:
+        ip_address: 192.168.24.110
+        ip_address_uri: 192.168.24.110
+        ip_subnet: 192.168.24.110/24
+      external:
+        ip_address: 172.16.4.110
+        ip_address_uri: 172.16.4.110
+        ip_subnet: 172.16.4.110/24
+      internal_api:
+        ip_address: 172.16.2.110
+        ip_address_uri: 172.16.2.110
+        ip_subnet: 172.16.2.110/24
+      storage:
+        ip_address: 172.16.1.110
+        ip_address_uri: 172.16.1.110
+        ip_subnet: 172.16.1.110/24
+      storage_mgmt:
+        ip_address: 172.16.2.110
+        ip_address_uri: 172.16.2.110
+        ip_subnet: 172.16.2.110/24
+      tenant:
+        ip_address: 172.16.0.110
+        ip_address_uri: 172.16.0.110
+        ip_subnet: 172.16.0.110/24
+    overcloud-controller-0:
+      management:
+        ip_address: 172.16.27.252
+        ip_address_uri: 172.16.27.252
+        ip_subnet: 172.16.27.252/22
+      ctlplane:
+        ip_address: 192.168.24.10
+        ip_address_uri: 192.168.24.10
+        ip_subnet: 192.168.24.10/24
+      external:
+        ip_address: 172.16.4.10
+        ip_address_uri: 172.16.4.10
+        ip_subnet: 172.16.4.10/24
+      internal_api:
+        ip_address: 172.16.2.10
+        ip_address_uri: 172.16.2.10
+        ip_subnet: 172.16.2.10/24
+      storage:
+        ip_address: 172.16.1.10
+        ip_address_uri: 172.16.1.10
+        ip_subnet: 172.16.1.10/24
+      storage_mgmt:
+        ip_address: 172.16.2.10
+        ip_address_uri: 172.16.2.10
+        ip_subnet: 172.16.2.10/24
+      tenant:
+        ip_address: 172.16.0.10
+        ip_address_uri: 172.16.0.10
+        ip_subnet: 172.16.0.10/24
+
+  ControlPlaneVipData:
+    fixed_ips:
+    - ip_address: 192.168.24.7
+    name: control_virtual_ip
+    network:
+      tags:
+      - 192.168.24.0/24
+    subnets:
+    - ip_version: 4
+  VipPortMap:
+    external:
+      ip_address: 172.16.4.221
+      ip_address_uri: 172.16.4.221
+      ip_subnet: 172.16.4.221/24
+    internal_api:
+      ip_address: 172.16.2.43
+      ip_address_uri: 172.16.2.43
+      ip_subnet: 172.16.2.43/24
+    storage:
+      ip_address: 172.16.1.231
+      ip_address_uri: 172.16.1.231
+      ip_subnet: 172.16.1.231/24
+    storage_mgmt:
+      ip_address: 172.16.2.30
+      ip_address_uri: 172.16.2.30
+      ip_subnet: 172.16.2.30/24
+
+  RedisVirtualFixedIPs:
+  - ip_address: "172.16.2.101"
+    use_neutron: false
+
+  OVNDBsVirtualFixedIPs:
+  - ip_address: "172.16.2.102"
+    use_neutron: false

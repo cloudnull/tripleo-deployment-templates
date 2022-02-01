@@ -9,16 +9,7 @@ export NFS_SERVER="${NFS_SERVER:-172.16.27.211}"
 export TENANT_VLAN="${TENANT_VLAN:-204}"
 
 
-function create-stack-user {
-  sudo useradd --comment "OpenStack user" --create-home --user-group --groups wheel stack
-  if [[ ! -d "/etc/sudoers.d/" ]]; then
-    mkdir -p /etc/sudoers.d
-  fi
-  echo '%wheel ALL=(ALL) NOPASSWD: ALL' | sudo tee -a /etc/sudoers.d/stack
-}
-
-
-function tmux-execute {
+function tmux_execute {
   tmux new-session -d -s deploy-tripleo -n deploy-tripleo || true
   tmux new-window -n deploy -t 0 || true
   tmux send-keys "${1}" C-m
@@ -27,7 +18,12 @@ function tmux-execute {
 
 function process-templates {
   source ${HOME}/stackrc
-  eval "${THT}/tools/process-templates.py -p ${THT} -r ${THT}/roles_data.yaml -n ${HOME}/net-data.yaml -o /tmp/templates/"
+  if [[ -f ${HOME}/roles-data.yaml ]]; then
+    ROLE_DATA=${HOME}/roles-data.yaml
+  else
+    ROLE_DATA=${THT}/roles_data.yaml
+  fi
+  eval "${THT}/tools/process-templates.py -p ${THT} -r ${ROLE_DATA} -n ${HOME}/net-data.yaml -o /tmp/templates/"
 }
 
 
@@ -213,7 +209,7 @@ function build-patched-packages {
           version: FETCH_HEAD
 EOF
     ansible-galaxy install cloudnull.ansible_tripleo_sdk --force
-    rm -fv ${HOME}/tripleo-sdk/packages.created
+    rm -fv /home/centos/tripleo-sdk/packages.created
     ansible-playbook -i localhost, playbook.yaml
 }
 
@@ -363,6 +359,31 @@ function deploy-overcloud {
                                                    --config-download-timeout 1024 \
                                                    --timeout 1024 \
                                                    --disable-validations \
+                                                   --validation-errors-nonfatal \
+                                                   --ntp-server ${NTP_SERVER} \
+                                                   --log-file ${HOME}/deploy.log \
+                                                   --libvirt-type ${VIRT_TYPE}
+}
+
+
+function deploy-overcloud-predeploy {
+  openstack --os-cloud undercloud overcloud deploy --stack ${STACK_NAME} \
+                                                   --templates ${THT} \
+                                                   --environment-file /tmp/templates/environments/deployed-server-environment.yaml \
+                                                   --environment-file /tmp/templates/environments/deployed-network-environment.yaml \
+                                                   --environment-file ${THT}/environments/enable-swap.yaml \
+                                                   --environment-file ${THT}/environments/storage/glance-nfs.yaml \
+                                                   --environment-file ${HOME}/parameters.yaml \
+                                                   --environment-file ${HOME}/deployed-server-network-environment.yaml \
+                                                   --roles-file ${HOME}/roles-data.yaml \
+						   --networks-file ${HOME}/net-data.yaml \
+                                                   --config-download-timeout 1024 \
+                                                   --timeout 1024 \
+                                                   --deployed-server \
+                                                   --disable-validations \
+                                                   --overcloud-ssh-network management \
+                                                   --overcloud-ssh-user centos \
+						   --overcloud-ssh-key ${HOME}/.ssh/id_rsa \
                                                    --validation-errors-nonfatal \
                                                    --ntp-server ${NTP_SERVER} \
                                                    --log-file ${HOME}/deploy.log \

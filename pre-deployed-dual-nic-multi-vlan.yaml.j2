@@ -76,6 +76,14 @@
    )
 %}
 {#
+  Rewrite the routes so that we're not rewritting any default routes
+#}
+{% set new_routes = [] %}
+{% for item in ctlplane_host_routes %}
+{%   set _ = item.__setitem__("default", false) %}
+{%   set _ = new_routes.append(item) %}
+{% endfor %}
+{#
   Set the network configuration interfaces
 #}
 {% set network_config_interfaces = [
@@ -85,7 +93,7 @@
       "mtu": ctlplane_mtu,
       "dns_servers": ctlplane_dns_nameservers,
       "domain": dns_search_domains,
-      "routes": ctlplane_host_routes,
+      "routes": new_routes,
       "use_dhcp": false,
       "addresses": [
         {
