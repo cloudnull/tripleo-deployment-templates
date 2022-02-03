@@ -8,6 +8,7 @@ export STACK_NAME="${STACK_NAME:-rk-openstack-0}"
 export NFS_SERVER="${NFS_SERVER:-172.16.27.211}"
 export TENANT_VLAN="${TENANT_VLAN:-204}"
 
+. /etc/os-release
 
 function tmux_execute {
   tmux new-session -d -s deploy-tripleo -n deploy-tripleo || true
@@ -107,7 +108,7 @@ function setup-standalone-multi-nic {
     export MTU="$(cat /sys/class/net/${INTERFACE}/mtu)"
     export BRIDGE="br-ctlplane"
 
-    cat <<EOF > $HOME/standalone_parameters.yaml
+    cat <<EOF > ${HOME}/standalone_parameters.yaml
 parameter_defaults:
   CloudName: ${IP}
   ControlPlaneStaticRoutes: []
@@ -209,7 +210,7 @@ function build-patched-packages {
           version: FETCH_HEAD
 EOF
     ansible-galaxy install cloudnull.ansible_tripleo_sdk --force
-    rm -fv /home/centos/tripleo-sdk/packages.created
+    rm -fv ${HOME}/tripleo-sdk/packages.created
     ansible-playbook -i localhost, playbook.yaml
 }
 
@@ -217,7 +218,7 @@ EOF
 function get-overcloud-images {
   mkdir -p ${HOME}/images
   pushd ${HOME}/images
-    IMAGE_URL="https://images.rdoproject.org/centos8/master/rdo_trunk/current-tripleo/"
+    IMAGE_URL="https://images.rdoproject.org/centos${VERSION}/master/rdo_trunk/current-tripleo/"
     curl "${IMAGE_URL}/ironic-python-agent.tar" -o ironic-python-agent.tar
     tar xf ironic-python-agent.tar
     curl "${IMAGE_URL}/overcloud-full.tar" -o overcloud-full.tar
@@ -333,7 +334,7 @@ function pre-build {
 
   [ -f ${HOME}/.ssh/id_rsa.pub ] || ssh-keygen -t rsa -f ${HOME}/.ssh/id_rsa -q -P ""
 
-  curl https://trunk.rdoproject.org/centos8/current/delorean.repo | sudo tee /etc/yum.repos.d/delorean.repo
+  curl "https://trunk.rdoproject.org/centos${VERSION}/current/delorean.repo" | sudo tee /etc/yum.repos.d/delorean.repo
 
   sudo dnf install -y 'python*tripleo-repos'
 
